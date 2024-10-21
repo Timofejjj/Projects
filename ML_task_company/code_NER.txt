@@ -1,0 +1,134 @@
+import csv
+import requests  # Исправлено: requests, а не request
+from bs4 import BeautifulSoup
+from google.colab import files
+
+def pars_url_and_extract_products(url, writer):
+    try:
+        # Отправляем запрос и получаем ответ в виде HTML разметки
+        response = requests.get(url)
+
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        # Извлечение продуктов
+        for product in soup.find_all(['p', 'span', 'li', 'h1', 'h2', 'ol','div']):
+            product_text = product.get_text().strip()
+
+            for keyword in [
+    "sofa",
+    "armchair",
+    "chair",
+    "table",
+    "coffee table",
+    "dining table",
+    "bed",
+    "nightstand",
+    "dresser", "wardrobe",
+    "cabinet",
+    "bookshelf",
+    "desk",
+    "bench",
+    "stool",
+    "bar stool",
+    "loveseat",
+    "rocking chair",
+    "recliner",
+    "ottoman",
+    "sideboard",
+    "chest of drawers",
+    "hutch",
+    "couch",
+    "sectional",
+    "bunk bed",
+    "daybed",
+    "trundle bed",
+    "headboard",
+    "footboard",
+    "vanity",
+    "console table",
+    "folding chair",
+    "bean bag chair",
+    "crib",
+    "bassinet",
+    "changing table",
+    "media console",
+    "entertainment center",
+    "tv stand",
+    "coat rack",
+    "shoe rack",
+    "wine rack",
+    "curio cabinet",
+    "china cabinet",
+    "buffet table",
+    "patio chair",
+    "patio table",
+    "outdoor sofa",
+    "hammock",
+    "swing chair",
+    "chaise lounge",
+    "futon",
+    "murphy bed",
+    "lap desk",
+    "writing desk",
+    "gaming chair",
+    "massage chair",
+    "kneeling chair",
+    "pedestal table",
+    "tallboy",
+    "lowboy",
+    "armoire",
+    "vanity stool",
+    "entryway table",
+    "plant stand",
+    "room divider",
+    "screen",
+    "tv cabinet",
+    "kids' chair",
+    "kids' table",
+    "picnic table",
+    "folding table",
+    "conference table",
+    "workbench",
+    "drafting table",
+    "laundry hamper",
+    "medicine cabinet",
+    "file cabinet",
+    "safe",
+    "locker",
+    "coat closet",
+    "linen closet",
+    "pantry cabinet",
+    "display cabinet",
+    "jewelry armoire",
+    "umbrella stand"
+            ]:
+                if keyword in product_text.lower():  # Приводим к нижнему регистру
+                    writer.writerow({
+                        "Text": product_text,
+                        "Word": keyword
+                    })
+
+    except Exception as e:
+        print(f"Exception: {e}")
+
+# Загрузка файлов
+uploaded_1 = files.upload()
+uploaded_2 = files.upload()
+
+url_file_name_1 = list(uploaded_1.keys())[0]
+url_file_name_2 = list(uploaded_2.keys())[0]  # Изменено на uploaded_2
+
+with open(url_file_name_1, 'r') as url_file, open(url_file_name_2, mode='w', newline='', encoding='utf-8') as csv_file:
+    # Создаем объект для записи в файл (каждая строка - это словарь)
+    writer = csv.DictWriter(csv_file, fieldnames=["Text", "Word"])
+    writer.writeheader()
+
+    urls = url_file.readlines()
+
+    for url in urls:
+        # Убираем все возможные пробелы и символы новой строки
+        url = url.strip()
+        pars_url_and_extract_products(url, writer)
+
+
+
