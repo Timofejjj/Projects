@@ -1,0 +1,19 @@
+#Base on regular exprassion
+
+import re
+
+df = pd.DataFrame('data_mebla/furniture.csv')
+
+  #Создать новый файл дял записи BIO данных
+for row in range(len(df)):
+    get_bio_tags_regex(row)
+    
+
+def get_bio_tags_regex(row):
+    #split to the every words
+    text = row['Text'].split()
+    word = row['Word']
+
+    tags = ['O']*len(text)
+
+    for i, token in 
