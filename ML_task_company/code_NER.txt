@@ -1,7 +1,14 @@
 import csv
-import requests  # Исправлено: requests, а не request
+import requests 
 from bs4 import BeautifulSoup
+from datasets import Dataset
+import pandas as pd
 from google.colab import files
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from transformers import RobertaTokenizer, RobertaForSequenceClassification, Trainer, TrainingArguments
+
 
 def pars_url_and_extract_products(url, writer):
     try:
@@ -97,12 +104,11 @@ def pars_url_and_extract_products(url, writer):
     "locker",
     "coat closet",
     "linen closet",
-    "pantry cabinet",
     "display cabinet",
     "jewelry armoire",
     "umbrella stand"
             ]:
-                if keyword in product_text.lower():  # Приводим к нижнему регистру
+                if keyword in product_text.lower():  
                     writer.writerow({
                         "Text": product_text,
                         "Word": keyword
@@ -111,24 +117,23 @@ def pars_url_and_extract_products(url, writer):
     except Exception as e:
         print(f"Exception: {e}")
 
-# Загрузка файлов
-uploaded_1 = files.upload()
-uploaded_2 = files.upload()
 
-url_file_name_1 = list(uploaded_1.keys())[0]
-url_file_name_2 = list(uploaded_2.keys())[0]  # Изменено на uploaded_2
 
-with open(url_file_name_1, 'r') as url_file, open(url_file_name_2, mode='w', newline='', encoding='utf-8') as csv_file:
-    # Создаем объект для записи в файл (каждая строка - это словарь)
+with open('data_mebla/URL_list.csv', 'r') as url_file, open('data_mebla/furniture.csv', mode='w', newline='', encoding='utf-8') as csv_file:
+
+  
     writer = csv.DictWriter(csv_file, fieldnames=["Text", "Word"])
     writer.writeheader()
 
     urls = url_file.readlines()
 
     for url in urls:
-        # Убираем все возможные пробелы и символы новой строки
         url = url.strip()
         pars_url_and_extract_products(url, writer)
+
+#Solving BIO problem:
+
+
 
 
 
