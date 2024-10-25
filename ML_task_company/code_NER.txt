@@ -1,5 +1,5 @@
 import csv
-import requests 
+import requests
 from bs4 import BeautifulSoup
 from datasets import Dataset
 import pandas as pd
@@ -106,7 +106,7 @@ def pars_url_and_extract_products(url, writer):
     "jewelry armoire",
     "umbrella stand"
             ]:
-                if keyword in product_text.lower():  
+                if keyword in product_text.lower():
                     writer.writerow({
                         "Text": product_text,
                         "Word": keyword
@@ -127,24 +127,44 @@ with open('data_mebla/URL_list.csv', 'r') as url_file, open('data_mebla/furnitur
         url = url.strip()
         pars_url_and_extract_products(url, writer)
 
-    
+
 
 #Solving BIO problem:
 
-def write_and_BIO_logic(writer, len, key_word):
+def writing_with_BIO_logic(writer, len, key_word):
 
+    counter = 0
     splited_len = len.split()
-    tags = ['O']*len(splited_len)
 
-    for i in range(len(splited_len))
+    for i in range(len(splited_len)):
 
         if splited_len[i] == key_word:
+            writer.writerow({
+                "Word": splited_len[i],      
+                "BIO_label": 'I-ENTITY'
+             })
+            counter = 1
 
-            tags[i] = 'B-ENTITY'
+            if counter > 0:
+              writer.writerow({
+                "Word": splited_len[i],      
+                "BIO_label": 'B-ENTITY'
+              })
+        
+        if splited_len[i] != key_word:
 
-     #code is't complete...     
+             writer.writeow({ 
+                  "Word":splited_len[i],
+                  "BIO_label": 'O-ENTITY'
+              })
 
-#open writing file 
+
+def learn_model():
+
+  pass
+
+
+#open writing file
 with open('data_mebla/BIO_clasification.csv', mode='w', newline='', encoding='utf-8') as csv_BIO_file:
 
     #Main idea is: to create new special the BIO file.
@@ -156,7 +176,12 @@ with open('data_mebla/BIO_clasification.csv', mode='w', newline='', encoding='ut
 
 
     for i in range(len(csv_file)):
-      write_and_BIO_logic(writer, df['Text'][i], df['Word'][i])
+      writing_with_BIO_logic(writer, df['Text'][i], df['Word'][i])
+
+
+
+
+
 
 
 
