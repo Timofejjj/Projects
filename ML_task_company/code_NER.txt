@@ -1,13 +1,11 @@
 import csv
 import requests
 from bs4 import BeautifulSoup
-from datasets import Dataset
 import pandas as pd
-from google.colab import files
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from transformers import RobertaTokenizer, RobertaForSequenceClassification, Trainer, TrainingArguments
+
 
 
 def pars_url_and_extract_products(url, writer):
@@ -169,13 +167,13 @@ with open('data_mebla/BIO_clasification.csv', mode='w', newline='', encoding='ut
 
     #Main idea is: to create new special the BIO file.
 
-    df = pd.DataFrame('csv_file')
-
+    df = pd.read_csv('data_mebla/furniture.csv')
+    
     writer = csv.DictWriter(csv_BIO_file, fieldnames = ["Word", "BIO_label"])
     writer.writeheader()
 
 
-    for i in range(len(csv_file)):
+    for i in range(len(df)):
       writing_with_BIO_logic(writer, df['Text'][i], df['Word'][i])
 
 
