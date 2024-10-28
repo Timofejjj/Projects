@@ -72,7 +72,7 @@ def writing_with_BIO_logic(writer, text, keyword):
             if counter = 1:
                  writer.writerow({
                                 "Word": word, 
-                                "BIO_label": "B-ENTITY"
+                                "BIO_label": "I-ENTITY"
                                 })
             
         if word.lower() != keyword::
