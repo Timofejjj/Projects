@@ -56,20 +56,31 @@ with open('URL_list.csv', mode = 'r') as url_file, open('furniture.csv', mode='w
 
 def writing_with_BIO_logic(writer, text, keyword):
     words = text.split()
-    bio_labels = []
-
+    counter = 0
+    
+    
     for word in words:
         if word.lower() == keyword:
-    
-            writer.writerow({
-                            "Word": word, 
-                            "BIO_label": "B-ENTITY"
-                            })
-        else:
+
+            if counter = 0: 
+                writer.writerow({
+                                "Word": word, 
+                                "BIO_label": "B-ENTITY"
+                                })
+                counter = 1
+            
+            if counter = 1:
+                 writer.writerow({
+                                "Word": word, 
+                                "BIO_label": "B-ENTITY"
+                                })
+            
+        if word.lower() != keyword::
             writer.writerow({
                             "Word": word, 
                             "BIO_label": "O-ENTITY"
-                            })        
+                            })     
+        
 
 with open('BIO_clasification.csv', mode='w', newline='', encoding='utf-8') as csv_BIO_file:
     
@@ -88,8 +99,6 @@ with open('BIO_clasification.csv', mode='w', newline='', encoding='utf-8') as cs
 
 #def learn_model():
  #   with open('data_mebla/BIO_clasification.csv', mode = 'r', newline = '',  enncoding = 'utf-8') as read_BIO:
-
-
 
 
 
