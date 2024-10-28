@@ -2,184 +2,92 @@ import csv
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
-
-
-def pars_url_and_extract_products(url, writer):
-
+# Parsing function
+def parse_url_and_extract_products(url, writer):
     try:
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        for product in soup.find_all(['p', 'span', 'li', 'h1', 'h2', 'ol','div']):
+        for product in soup.find_all(['p', 'span', 'li', 'h1', 'h2', 'ol', 'div']):
             product_text = product.get_text().strip()
 
             for keyword in [
-    "sofa",
-    "armchair",
-    "chair",
-    "table",
-    "coffee table",
-    "dining table",
-    "bed",
-    "nightstand",
-    "dresser", "wardrobe",
-    "cabinet",
-    "bookshelf",
-    "desk",
-    "bench",
-    "stool",
-    "bar stool",
-    "loveseat",
-    "rocking chair",
-    "recliner",
-    "ottoman",
-    "sideboard",
-    "chest of drawers",
-    "hutch",
-    "couch",
-    "sectional",
-    "bunk bed",
-    "daybed",
-    "trundle bed",
-    "headboard",
-    "footboard",
-    "vanity",
-    "console table",
-    "folding chair",
-    "bean bag chair",
-    "crib",
-    "bassinet",
-    "changing table",
-    "media console",
-    "entertainment center",
-    "tv stand",
-    "coat rack",
-    "shoe rack",
-    "wine rack",
-    "curio cabinet",
-    "china cabinet",
-    "buffet table",
-    "patio chair",
-    "patio table",
-    "outdoor sofa",
-    "hammock",
-    "swing chair",
-    "chaise lounge",
-    "futon",
-    "murphy bed",
-    "lap desk",
-    "writing desk",
-    "gaming chair",
-    "massage chair",
-    "kneeling chair",
-    "pedestal table",
-    "tallboy",
-    "lowboy",
-    "armoire",
-    "vanity stool",
-    "entryway table",
-    "plant stand",
-    "room divider",
-    "screen",
-    "tv cabinet",
-    "kids' chair",
-    "kids' table",
-    "picnic table",
-    "folding table",
-    "conference table",
-    "workbench",
-    "drafting table",
-    "laundry hamper",
-    "medicine cabinet",
-    "file cabinet",
-    "safe",
-    "locker",
-    "coat closet",
-    "linen closet",
-    "display cabinet",
-    "jewelry armoire",
-    "umbrella stand"
+                "sofa", "armchair", "chair", "table", "coffee table", "dining table",
+                "bed", "nightstand", "dresser", "wardrobe", "cabinet", "bookshelf",
+                "desk", "bench", "stool", "bar stool", "loveseat", "rocking chair",
+                "recliner", "ottoman", "sideboard", "chest of drawers", "hutch",
+                "couch", "sectional", "bunk bed", "daybed", "trundle bed",
+                "headboard", "footboard", "vanity", "console table", "folding chair",
+                "bean bag chair", "crib", "bassinet", "changing table", "media console",
+                "entertainment center", "tv stand", "coat rack", "shoe rack", "wine rack",
+                "curio cabinet", "china cabinet", "buffet table", "patio chair",
+                "patio table", "outdoor sofa", "hammock", "swing chair", "chaise lounge",
+                "futon", "murphy bed", "lap desk", "writing desk", "gaming chair",
+                "massage chair", "kneeling chair", "pedestal table", "tallboy",
+                "lowboy", "armoire", "vanity stool", "entryway table", "plant stand",
+                "room divider", "screen", "tv cabinet", "kids' chair", "kids' table",
+                "picnic table", "folding table", "conference table", "workbench",
+                "drafting table", "laundry hamper", "medicine cabinet", "file cabinet",
+                "safe", "locker", "coat closet", "linen closet", "display cabinet",
+                "jewelry armoire", "umbrella stand"
             ]:
                 if keyword in product_text.lower():
                     writer.writerow({
-                        "Text": product_text,
-                        "Word": keyword
-                    })
+                                    "Text": product_text, 
+                                    "Word": keyword
+                                    })
 
     except Exception as e:
-        print(f"Exception: {e}")
+        print(f"Error: {e}")
 
-
-
-with open('data_mebla/URL_list.csv', 'r') as url_file, open('data_mebla/furniture.csv', mode='w', newline='', encoding='utf-8') as csv_file:
-
+#Reading URL_file and writing in csv_file
+with open('URL_list.csv', mode = 'r') as url_file, open('furniture.csv', mode='w', newline='', encoding='utf-8') as csv_file:
     writer = csv.DictWriter(csv_file, fieldnames=["Text", "Word"])
     writer.writeheader()
     urls = url_file.readlines()
 
     for url in urls:
         url = url.strip()
-        pars_url_and_extract_products(url, writer)
+        parse_url_and_extract_products(url, writer)
 
 
+def writing_with_BIO_logic(writer, text, keyword):
+    words = text.split()
+    bio_labels = []
 
-#Solving BIO problem:
-
-def writing_with_BIO_logic(writer, len, key_word):
-
-    counter = 0
-    splited_len = len.split()
-
-    for i in range(len(splited_len)):
-
-        if splited_len[i] == key_word:
-            writer.writerow({
-                "Word": splited_len[i],      
-                "BIO_label": 'I-ENTITY'
-             })
-            counter = 1
-
-            if counter > 0:
-              writer.writerow({
-                "Word": splited_len[i],      
-                "BIO_label": 'B-ENTITY'
-              })
-        
-        if splited_len[i] != key_word:
-
-             writer.writeow({ 
-                  "Word":splited_len[i],
-                  "BIO_label": 'O-ENTITY'
-              })
-
-
-def learn_model():
-
-  pass
-
-
-#open writing file
-with open('data_mebla/BIO_clasification.csv', mode='w', newline='', encoding='utf-8') as csv_BIO_file:
-
-    #Main idea is: to create new special the BIO file.
-
-    df = pd.read_csv('data_mebla/furniture.csv')
+    for word in words:
+        if word.lower() == keyword:
     
-    writer = csv.DictWriter(csv_BIO_file, fieldnames = ["Word", "BIO_label"])
+            writer.writerow({
+                            "Word": word, 
+                            "BIO_label": "B-ENTITY"
+                            })
+        else:
+            writer.writerow({
+                            "Word": word, 
+                            "BIO_label": "O-ENTITY"
+                            })        
+
+with open('BIO_clasification.csv', mode='w', newline='', encoding='utf-8') as csv_BIO_file:
+    
+    df = pd.read_csv('furniture.csv', delimiter=',')
+    df_cleaned = df.dropna()  
+    
+    writer = csv.DictWriter(csv_BIO_file, fieldnames=["Word", "BIO_label"])
     writer.writeheader()
 
+    for i in range(len(df_cleaned)):
+        writing_with_BIO_logic(writer, df_cleaned['Text'].iloc[i], df_cleaned['Word'].iloc[i])
+    
+    print("-----Writing in CSV_bio complate successfully--------")
+        
+#Learning model
 
-    for i in range(len(df)):
-      writing_with_BIO_logic(writer, df['Text'][i], df['Word'][i])
-
-
-
-
-
+#def learn_model():
+ #   with open('data_mebla/BIO_clasification.csv', mode = 'r', newline = '',  enncoding = 'utf-8') as read_BIO:
 
 
 
