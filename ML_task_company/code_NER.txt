@@ -94,27 +94,27 @@ def parse_url_and_extract_products(url, writer):
                     if i == 0:
                         if lemmatizer.lemmatize(word.lower()) == keyword:
                             if counter == 0:
-                                writer.writerow({"Word": word, 
+                                writer.writerow({"Word": word,
                                                  "BIO_label": "B-ENTITY"})
                                 counter = 1
                             else:
-                                writer.writerow({"Word": word, 
+                                writer.writerow({"Word": word,
                                                  "BIO_label": "I-ENTITY"})
                         else:
-                            writer.writerow({"Word": word, 
+                            writer.writerow({"Word": word,
                                              "BIO_label": "O-ENTITY"})
                     # Если индекс i > 0, обрабатываем текущее и предыдущее слово
                     else:
                         if (lemmatizer.lemmatize(word.lower()) == keyword) or (lemmatizer.lemmatize(words[i - 1].lower()) == keyword):
                             if counter == 0:
-                                writer.writerow({"Word": word, 
+                                writer.writerow({"Word": word,
                                                  "BIO_label": "B-ENTITY"})
                                 counter = 1
                             else:
-                                writer.writerow({"Word": word, 
+                                writer.writerow({"Word": word,
                                                  "BIO_label": "I-ENTITY"})
                         else:
-                            writer.writerow({"Word": word, 
+                            writer.writerow({"Word": word,
                                              "BIO_label": "O-ENTITY"})
     except Exception as e:
         print(f"Error: {e}")
@@ -128,9 +128,6 @@ with open('URL_list.csv', mode='r') as url_file, open('BIO_clasification.csv', m
     for url in urls:
         url = url.strip()
         parse_url_and_extract_products(url, writer)
- #   with open('data_mebla/BIO_clasification.csv', mode = 'r', newline = '',  enncoding = 'utf-8') as read_BIO:
-
-
 
 
 
