@@ -1,126 +1,119 @@
+# Импортируем нужные библиотеки
 import csv
 import requests
 from bs4 import BeautifulSoup
 from nltk.stem import WordNetLemmatizer
+from transformers import BertTokenizerFast, BertForTokenClassification, Trainer, TrainingArguments
+import torch
+import pandas as pd
+from datasets import Dataset
+from transformers import BertTokenizer, BertForTokenClassification, Trainer, TrainingArguments
+from sklearn.model_selection import train_test_split
+import torch
 
-# Parsing function
+
+# Collecting data
+
 def parse_url_and_extract_products(url, writer):
     try:
-        counter = 0
         lemmatizer = WordNetLemmatizer()
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
 
+        # Key words list
+        keywords = [
+           
+            "sofa", "armchair", "chair", "table", "coffee table", "dining table",
+            "bed", "nightstand", "dresser", "wardrobe", "cabinet", "bookshelf",
+            "desk", "bench", "stool", "bar stool", "loveseat", "rocking chair",
+            "recliner", "ottoman", "sideboard", "chest of drawers", "hutch",
+            "couch", "sectional", "bunk bed", "daybed", "trundle bed",
+            "headboard", "footboard", "vanity", "console table", "folding chair",
+            "bean bag chair", "crib", "bassinet", "changing table", "media console",
+            "entertainment center", "tv stand", "coat rack", "shoe rack", "wine rack",
+            "curio cabinet", "china cabinet", "buffet table", "patio chair",
+            "patio table", "outdoor sofa", "hammock", "swing chair", "chaise lounge",
+            "futon", "murphy bed", "lap desk", "writing desk", "gaming chair",
+            "massage chair", "kneeling chair", "pedestal table", "tallboy",
+            "lowboy", "armoire", "vanity stool", "entryway table", "plant stand",
+            "room divider", "screen", "tv cabinet", "kids' chair", "kids' table",
+            "picnic table", "folding table", "conference table", "workbench",
+            "drafting table", "laundry hamper", "medicine cabinet", "file cabinet",
+            "safe", "locker", "coat closet", "linen closet", "display cabinet",
+            "jewelry armoire", "umbrella stand", "bar cabinet", "mirror cabinet",
+            "pouf", "storage bench", "footstool", "apothecary cabinet", "hat stand",
+            "luggage rack", "entry bench", "hall tree", "ladder shelf",
+
+          
+            "kitchen island", "bar cart", "serving cart", "buffet", "side table",
+            "bar table", "pub table", "wine cabinet", "pantry cabinet",
+            "kitchen cart", "butcher block", "breakfast nook", "china hutch",
+
+            "office chair", "office desk", "conference chair", "filing cabinet",
+            "standing desk", "sit-stand desk", "drafting chair", "ergonomic chair",
+            "executive chair", "guest chair", "task chair", "lateral file cabinet",
+            "vertical file cabinet", "book cart", "storage cabinet",
+
+           
+            "bathroom cabinet", "vanity cabinet", "linen tower", "medicine chest",
+            "over-toilet cabinet", "laundry cabinet", "bathroom shelf",
+
+           
+            "outdoor chair", "outdoor table", "outdoor bench", "outdoor sofa",
+            "patio loveseat", "patio sectional", "pool lounge", "garden bench",
+            "deck chair", "balcony set", "fire pit table", "outdoor bar",
+
+            
+            "kids' bed", "kids' dresser", "play table", "activity table",
+            "toy chest", "kids' desk", "high chair", "crib mattress", "toddler bed",
+            "playpen", "changing station", "kids' bookshelf", "baby crib",
+
+         
+            "mattress", "bed frame", "box spring", "bedside table",
+            "sleeping bag", "bunk ladder", "bed drawer", "underbed storage",
+
+           
+            "storage bin", "storage box", "closet organizer", "drawer organizer",
+            "hanging shelf", "shoe cabinet", "hat rack", "coat hanger",
+            "clothes rack", "freestanding wardrobe", "basket",
+
+            
+            "console", "display case", "shadow box", "pedestal", "vitrine",
+            "etagere", "decorative ladder", "wall shelf", "picture ledge",
+
+         
+            "murphy bed", "loft bed", "folding sofa", "daybed trundle",
+            "platform bed", "canopy bed", "sleigh bed", "panel bed",
+
+            
+            "glider chair", "parsons chair", "director's chair", "papasan chair",
+            "club chair", "wingback chair", "chaise sofa", "slipper chair",
+            "bean bag", "folding stool", "nesting tables", "stacking chair",
+
+            "coat rack", "umbrella rack", "shoe bench", "hanging organizer",
+            "drawer chest", "clothes cabinet", "trunk", "blanket chest"
+        ]
+
         for product in soup.find_all(['p', 'span', 'li', 'h1', 'h2', 'ol', 'div']):
             product_text = product.get_text().strip()
-            words = product_text.split()  # Разделение текста на отдельные слова
+            words = product_text.split()
+            counter = 0  # Сбрасываем счетчик для каждого нового продукта
 
-            for keyword in [
-                # Общие категории мебели
-                "sofa", "armchair", "chair", "table", "coffee table", "dining table",
-                "bed", "nightstand", "dresser", "wardrobe", "cabinet", "bookshelf",
-                "desk", "bench", "stool", "bar stool", "loveseat", "rocking chair",
-                "recliner", "ottoman", "sideboard", "chest of drawers", "hutch",
-                "couch", "sectional", "bunk bed", "daybed", "trundle bed",
-                "headboard", "footboard", "vanity", "console table", "folding chair",
-                "bean bag chair", "crib", "bassinet", "changing table", "media console",
-                "entertainment center", "tv stand", "coat rack", "shoe rack", "wine rack",
-                "curio cabinet", "china cabinet", "buffet table", "patio chair",
-                "patio table", "outdoor sofa", "hammock", "swing chair", "chaise lounge",
-                "futon", "murphy bed", "lap desk", "writing desk", "gaming chair",
-                "massage chair", "kneeling chair", "pedestal table", "tallboy",
-                "lowboy", "armoire", "vanity stool", "entryway table", "plant stand",
-                "room divider", "screen", "tv cabinet", "kids' chair", "kids' table",
-                "picnic table", "folding table", "conference table", "workbench",
-                "drafting table", "laundry hamper", "medicine cabinet", "file cabinet",
-                "safe", "locker", "coat closet", "linen closet", "display cabinet",
-                "jewelry armoire", "umbrella stand", "bar cabinet", "mirror cabinet",
-                "pouf", "storage bench", "footstool", "apothecary cabinet", "hat stand",
-                "luggage rack", "entry bench", "hall tree", "ladder shelf",
-
-                # Мебель для столовой и кухни
-                "kitchen island", "bar cart", "serving cart", "buffet", "side table",
-                "bar table", "pub table", "wine cabinet", "pantry cabinet",
-                "kitchen cart", "butcher block", "breakfast nook", "china hutch",
-
-                # Офисная мебель
-                "office chair", "office desk", "conference chair", "filing cabinet",
-                "standing desk", "sit-stand desk", "drafting chair", "ergonomic chair",
-                "executive chair", "guest chair", "task chair", "lateral file cabinet",
-                "vertical file cabinet", "book cart", "storage cabinet",
-
-                # Мебель для ванной
-                "bathroom cabinet", "vanity cabinet", "linen tower", "medicine chest",
-                "over-toilet cabinet", "laundry cabinet", "bathroom shelf",
-
-                # Уличная мебель
-                "outdoor chair", "outdoor table", "outdoor bench", "outdoor sofa",
-                "patio loveseat", "patio sectional", "pool lounge", "garden bench",
-                "deck chair", "balcony set", "fire pit table", "outdoor bar",
-
-                # Мебель для детей
-                "kids' bed", "kids' dresser", "play table", "activity table",
-                "toy chest", "kids' desk", "high chair", "crib mattress", "toddler bed",
-                "playpen", "changing station", "kids' bookshelf", "baby crib",
-
-                # Спальные аксессуары
-                "mattress", "bed frame", "box spring", "bedside table",
-                "sleeping bag", "bunk ladder", "bed drawer", "underbed storage",
-
-                # Хранение и организация
-                "storage bin", "storage box", "closet organizer", "drawer organizer",
-                "hanging shelf", "shoe cabinet", "hat rack", "coat hanger",
-                "clothes rack", "freestanding wardrobe", "basket",
-
-                # Декоративные предметы мебели
-                "console", "display case", "shadow box", "pedestal", "vitrine",
-                "etagere", "decorative ladder", "wall shelf", "picture ledge",
-
-                # Специфические типы мебели
-                "murphy bed", "loft bed", "folding sofa", "daybed trundle",
-                "platform bed", "canopy bed", "sleigh bed", "panel bed",
-
-                # Другие типы мебели
-                "glider chair", "parsons chair", "director's chair", "papasan chair",
-                "club chair", "wingback chair", "chaise sofa", "slipper chair",
-                "bean bag", "folding stool", "nesting tables", "stacking chair",
-
-                # Аксессуары для хранения
-                "coat rack", "umbrella rack", "shoe bench", "hanging organizer",
-                "drawer chest", "clothes cabinet", "trunk", "blanket chest"
-            ]:
-                for i, word in enumerate(words):
-                    # Если индекс i == 0, обрабатываем только текущее слово
-                    if i == 0:
-                        if lemmatizer.lemmatize(word.lower()) == keyword:
-                            if counter == 0:
-                                writer.writerow({"Word": word,
-                                                 "BIO_label": "B-ENTITY"})
-                                counter = 1
-                            else:
-                                writer.writerow({"Word": word,
-                                                 "BIO_label": "I-ENTITY"})
-                        else:
-                            writer.writerow({"Word": word,
-                                             "BIO_label": "O-ENTITY"})
-                    # Если индекс i > 0, обрабатываем текущее и предыдущее слово
+            for i, word in enumerate(words):
+                word_lemma = lemmatizer.lemmatize(word.lower())
+                if word_lemma in keywords:
+                    if counter == 0:
+                        writer.writerow({"Word": word, "BIO_label": "B-ENTITY"})
+                        counter = 1
                     else:
-                        if (lemmatizer.lemmatize(word.lower()) == keyword) or (lemmatizer.lemmatize(words[i - 1].lower()) == keyword):
-                            if counter == 0:
-                                writer.writerow({"Word": word,
-                                                 "BIO_label": "B-ENTITY"})
-                                counter = 1
-                            else:
-                                writer.writerow({"Word": word,
-                                                 "BIO_label": "I-ENTITY"})
-                        else:
-                            writer.writerow({"Word": word,
-                                             "BIO_label": "O-ENTITY"})
+                        writer.writerow({"Word": word, "BIO_label": "I-ENTITY"})
+                else:
+                    writer.writerow({"Word": word, "BIO_label": "O-ENTITY"})
     except Exception as e:
         print(f"Error: {e}")
 
-# Reading URL_file and writing in csv_file
-with open('URL_list.csv', mode='r') as url_file, open('BIO_clasification.csv', mode='w', newline='', encoding='utf-8') as csv_BIO_file:
+
+with open('URL_list.csv', mode='r') as url_file, open('BIO_classification.csv', mode='w', newline='', encoding='utf-8') as csv_BIO_file:
     writer = csv.DictWriter(csv_BIO_file, fieldnames=["Word", "BIO_label"])
     writer.writeheader()
     urls = url_file.readlines()
@@ -128,6 +121,20 @@ with open('URL_list.csv', mode='r') as url_file, open('BIO_clasification.csv', m
     for url in urls:
         url = url.strip()
         parse_url_and_extract_products(url, writer)
+
+#Cleaning data:
+df_BIO = pd.DataFrame(csv_BIO_file)
+df_BIO_cleaned = df_BIO.dropna()
+df_BIO_cleaned.head()
+
+
+#Spliting data in to train and test collection
+clean_BIO_train, clean_BIO_test = train_test_split(df_BIO_cleaned, test_size = 0.33, random_state = 42, shuffle = False) 
+
+#Create corractly data specually for learn model BERT
+model_class, tokenizer_class, pretrained_weight = (ppb.BertModle, ppb.BertTokenizer, 'bert-base-uncaused')
+tokenizer = tokenizer_class.from_pretrained(pretrained_weight)
+model = model_class.from_pretrained(pretrained_weights)
 
 
 
