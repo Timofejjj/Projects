@@ -1,0 +1,1 @@
+In this repository I uploaded all the projects that I did in the course on computer vision from Kagle
