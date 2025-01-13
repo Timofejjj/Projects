@@ -62,3 +62,50 @@ ds_valid = (
     .cache()
     .prefetch(buffer_size=AUTOTUNE)
 )
+
+pretrained_base = tf.keras.models.load_model(
+    '../input/cv-course-models/cv-course-models/vgg16-pretrained-base',
+)
+pretrained_base.trainable = False
+
+
+
+from tensorflow import keras
+from tensorflow.keras import layers
+
+model = keras.Sequential([
+    pretrained_base,
+    layers.Flatten(),
+    layers.Dense(6, activation='relu'),
+    layers.Dense(1, activation='sigmoid'),
+])
+
+#Train the Model: 
+model.compile(
+    optimizer='adam',
+    loss='binary_crossentropy',
+    metrics=['binary_accuracy'],
+)
+
+history = model.fit(
+    ds_train,
+    validation_data=ds_valid,
+    epochs=30,
+    verbose=0,
+)
+
+
+#Show graphics: 
+
+model.compile(
+    optimizer='adam',
+    loss='binary_crossentropy',
+    metrics=['binary_accuracy'],
+)
+
+history = model.fit(
+    ds_train,
+    validation_data=ds_valid,
+    epochs=30,
+    verbose=0,
+)
